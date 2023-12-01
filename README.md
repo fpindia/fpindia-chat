@@ -2,7 +2,7 @@
 
 WIP: Matrix server (NixOS) for FPIndia
 
-## Flake contents
+## Setup
 
 ### DigitalOcean image
 
@@ -28,3 +28,9 @@ To deploy the configuration,
 ```
 nix run . deploy
 ```
+
+## Hosts
+
+### [`fpindia-chat`](./hosts/fpindia-chat/)
+
+Runs the Matrix server.

@@ -1,6 +1,10 @@
 { pkgs, ... }:
 
 {
+  imports = [
+    ./matrix.nix
+  ];
+
   # Harden.
   services.openssh = {
     settings = {
