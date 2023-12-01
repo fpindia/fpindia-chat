@@ -40,7 +40,7 @@
             };
             imports = [
               ./modules/doImage.nix
-              ./hosts/fpindia-chat.nix
+              ./hosts/fpindia-chat
             ];
           };
         };
