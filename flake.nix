@@ -15,10 +15,15 @@
             (import ./modules/doImage.nix { inherit inputs; })
           ).digitalOceanImage;
 
-        apps = {
+        apps = rec {
           # Deployer (for use in `nix run`)
           default.program = lib.getExe pkgs.colmena;
-          ssh.program = pkgs.writeShellScriptBin "ssh-fpindia-chat" "ssh ${self.fpindia-chat.targetUser}@${self.fpindia-chat.targetHost}";
+          ssh.program = pkgs.writeShellScriptBin "ssh-fpindia-chat"
+            "ssh ${self.fpindia-chat.targetUser}@${self.fpindia-chat.targetHost}";
+          deploy.program = pkgs.writeShellScriptBin "deploy-fpindia-chat"
+            (if pkgs.stdenv.isLinux
+            then "${default.program} apply"
+            else "${default.program} apply --build-on-target");
         };
 
         # Run `nix fmt` to format the Nix files.
