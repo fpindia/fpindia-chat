@@ -8,30 +8,36 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" "aarch64-darwin" ];
 
-      perSystem = { pkgs, lib, ... }: {
-        # Base DigitalOcean image
-        packages.doImage =
-          (pkgs.nixos
-            (import ./modules/doImage.nix { inherit inputs; })
-          ).digitalOceanImage;
+      perSystem = { pkgs, lib, ... }:
+        let
+          mkColmenaApps = { name, config }: rec {
+            # Runs `colmena` executable.
+            default.program = lib.getExe pkgs.colmena;
+            # SSH's to the target host in `config`.
+            ssh.program = pkgs.writeShellScriptBin "ssh-${name}"
+              "ssh ${config.targetUser}@${config.targetHost}";
+            # Run's `colmena apply`. Enables remote build on macOS.
+            deploy.program = pkgs.writeShellScriptBin "deploy-${name}"
+              (if pkgs.stdenv.isLinux
+              then "${default.program} apply"
+              else "${default.program} apply --build-on-target");
+          };
+        in
+        {
+          # Base DigitalOcean image
+          packages.doImage =
+            (pkgs.nixos
+              (import ./modules/doImage.nix { inherit inputs; })
+            ).digitalOceanImage;
 
-        apps = rec {
-          # Deployer (for use in `nix run`)
-          default.program = lib.getExe pkgs.colmena;
-          ssh.program = pkgs.writeShellScriptBin "ssh-fpindia-chat"
-            "ssh ${self.fpindia-chat.targetUser}@${self.fpindia-chat.targetHost}";
-          deploy.program = pkgs.writeShellScriptBin "deploy-fpindia-chat"
-            (if pkgs.stdenv.isLinux
-            then "${default.program} apply"
-            else "${default.program} apply --build-on-target");
+          apps = mkColmenaApps { name = "fpindia-chat"; config = self.server-config; };
+
+          # Run `nix fmt` to format the Nix files.
+          formatter = pkgs.nixpkgs-fmt;
         };
 
-        # Run `nix fmt` to format the Nix files.
-        formatter = pkgs.nixpkgs-fmt;
-      };
-
       flake = {
-        fpindia-chat = {
+        server-config = {
           targetHost = "165.22.214.173"; # DigitalOcean droplet IP
           targetUser = "admin";
         };
@@ -44,7 +50,7 @@
             specialArgs = { inherit inputs; };
           };
           fpindia-chat = { pkgs, ... }: {
-            deployment = self.fpindia-chat;
+            deployment = self.server-config;
             imports = [
               ./modules/doImage.nix
               ./hosts/fpindia-chat
