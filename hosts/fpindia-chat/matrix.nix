@@ -93,18 +93,20 @@ in
     };
   };
 
-  /*
-    age.secrets.registration_shared_secret = {
-    file = ../secrets/registration_shared_secret.age;
-    owner = config.systemd.services.matrix-synapse.serviceConfig.User;
-    };
-  */
+  # To create this key, consult: https://nixos.org/manual/nixos/stable/index.html#module-services-matrix-synapse
+  deployment.keys."matrix-shared-secret.secret" = {
+    keyCommand = [ "op" "read" "op://Juspay/fpindia-chat secrets/matrix-shared-secret" ];
+    user = config.systemd.services.matrix-synapse.serviceConfig.User;
+  };
+  systemd.services.matrix-synapse.serviceConfig.SupplementaryGroups = [ "keys" ]; # For colmera
 
   services.matrix-synapse = {
     enable = true;
     settings.server_name = domain;
+    settings.enable_registration = true;
+    settings.enable_registration_captcha = true;
     extraConfigFiles = [
-      # config.age.secrets."registration_shared_secret".path
+      "/run/keys/matrix-shared-secret.secret"
     ];
 
     # The public base URL value must match the `base_url` value set in `clientConfig` above.

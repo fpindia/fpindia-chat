@@ -15,6 +15,10 @@ Upload this in DigitalOcean, [`Images -> Custom Images`](https://cloud.digitaloc
 
 Then create a droplet using this image.
 
+### Secrets
+
+- Create a [shared secret for synapse](https://nixos.org/manual/nixos/stable/index.html#module-services-matrix-register-users) and store it in the appropriate 1Password vault (see `matrix.nix`)
+
 ### [Colmena](https://github.com/zhaofengli/colmena) deployment
 
 To build the configuration,
