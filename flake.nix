@@ -8,16 +8,16 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" "aarch64-darwin" ];
 
-      perSystem = { pkgs, ... }: {
-        packages = {
-          # Base DigitalOcean image
-          doImage =
-            (pkgs.nixos
-              (import ./modules/doImage.nix { inherit inputs; })
-            ).digitalOceanImage;
+      perSystem = { pkgs, lib, ... }: {
+        # Base DigitalOcean image
+        packages.doImage =
+          (pkgs.nixos
+            (import ./modules/doImage.nix { inherit inputs; })
+          ).digitalOceanImage;
 
+        apps = {
           # Deployer (for use in `nix run`)
-          default = pkgs.colmena;
+          default.program = lib.getExe pkgs.colmena;
         };
 
         # Run `nix fmt` to format the Nix files.
