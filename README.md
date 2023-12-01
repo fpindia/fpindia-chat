@@ -11,7 +11,7 @@ nix build .#doImage
 ls -l result/nixos.qcow2.gz
 ```
 
-Upload this in DigitalOcean, [`Images -> Custom Images`](https://cloud.digitalocean.com/images/custom_images). 
+Upload this in DigitalOcean, [`Images -> Custom Images`](https://cloud.digitalocean.com/images/custom_images).
 
 Then create a droplet using this image.
 
@@ -27,6 +27,12 @@ To deploy the configuration,
 
 ```
 nix run . deploy
+```
+
+To SSH to the machine,
+
+```
+nix run .#ssh
 ```
 
 ## Hosts
