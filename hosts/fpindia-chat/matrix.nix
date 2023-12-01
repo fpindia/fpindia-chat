@@ -4,16 +4,14 @@ let
   domain = "functionalprogramming.in";
   fqdn = "ems.${domain}";
   baseUrl = "https://${fqdn}";
+
+  # NOTE: Both these configs must be aligned with the ".well-known" routes
+  # We currently servce these from the static site; https://github.com/fpindia/fpindia-site/pull/44/files
   clientConfig."m.homeserver" = {
     base_url = baseUrl;
     server_name = "${domain}";
   };
   serverConfig."m.server" = "${fqdn}:443";
-  mkWellKnown = data: ''
-    add_header Content-Type application/json;
-    add_header Access-Control-Allow-Origin *;
-    return 200 '${builtins.toJSON data}';
-  '';
 in
 {
   networking.firewall.allowedTCPPorts = [ 80 443 ];
@@ -40,29 +38,8 @@ in
     recommendedGzipSettings = true;
     recommendedProxySettings = true;
     virtualHosts = {
-      # If the A and AAAA DNS records on example.org do not point on the same host as the
-      # records for myhostname.example.org, you can easily move the /.well-known
-      # virtualHost section of the code to the host that is serving example.org, while
-      # the rest stays on myhostname.example.org with no other changes required.
-      # This pattern also allows to seamlessly move the homeserver from
-      # myhostname.example.org to myotherhost.example.org by only changing the
-      # /.well-known redirection target.
-      /*
-      "${config.networking.domain}" = {
-        enableACME = true;
-        forceSSL = true;
-        # This section is not needed if the server_name of matrix-synapse is equal to
-        # the domain (i.e. example.org from @foo:example.org) and the federation port
-        # is 8448.
-        # Further reference can be found in the docs about delegation under
-        # https://matrix-org.github.io/synapse/latest/delegate.html
-        locations."= /.well-known/matrix/server".extraConfig = mkWellKnown serverConfig;
-        # This is usually needed for homeserver discovery (from e.g. other Matrix clients).
-        # Further reference can be found in the upstream docs at
-        # https://spec.matrix.org/latest/client-server-api/#getwell-knownmatrixclient
-        locations."= /.well-known/matrix/client".extraConfig = mkWellKnown clientConfig;
-      };
-      */
+      # NOTE: Main domain is hosted by GitHub: https://github.com/fpindia/fpindia-site
+
       "${fqdn}" = {
         enableACME = true;
         forceSSL = true;
