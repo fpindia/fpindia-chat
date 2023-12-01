@@ -25,8 +25,12 @@ nix run . build
 
 To deploy the configuration,
 
-```
-nix run . deploy
+```sh
+# From Linux
+nix run . apply
+# NOTE: If you are on macOS, run instead:
+# cf. https://colmena.cli.rs/unstable/features/remote-builds.html
+nix run . apply -- --build-on-target
 ```
 
 To SSH to the machine,
