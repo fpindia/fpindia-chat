@@ -10,21 +10,21 @@
 
       perSystem = { pkgs, lib, ... }:
         let
-          mkColmenaApps = { name, config }: rec {
+          mkColmenaApps = nodeName: rec {
             # Runs `colmena` executable.
             default.program = lib.getExe pkgs.colmena;
-            # SSH's to the target host in `config`.
-            ssh.program = pkgs.writeShellScriptBin "ssh-${name}"
+            # SSH's to the deployment target of `nodeName`
+            ssh.program = pkgs.writeShellScriptBin "ssh-${nodeName}"
               ''
                 ADDR=''$(${default.program} eval -E '{ nodes, ... }:
-                    let cfg = nodes.${name}.config.deployment;
+                    let cfg = nodes.${nodeName}.config.deployment;
                     in "''${cfg.targetUser}@''${cfg.targetHost}"' | tr -d '"'
                 )
                 set -x
                 ssh $ADDR
               '';
             # Run's `colmena apply`. Enables remote build on macOS.
-            deploy.program = pkgs.writeShellScriptBin "deploy-${name}"
+            deploy.program = pkgs.writeShellScriptBin "deploy-${nodeName}"
               (if pkgs.stdenv.isLinux
               then "${default.program} apply"
               else "${default.program} apply --build-on-target");
@@ -37,7 +37,7 @@
               (import ./modules/doImage.nix { inherit inputs; })
             ).digitalOceanImage;
 
-          apps = mkColmenaApps { name = "fpindia-chat"; config = self.server-config; };
+          apps = mkColmenaApps "fpindia-chat";
 
           # Run `nix fmt` to format the Nix files.
           formatter = pkgs.nixpkgs-fmt;
