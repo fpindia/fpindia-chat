@@ -15,7 +15,14 @@
             default.program = lib.getExe pkgs.colmena;
             # SSH's to the target host in `config`.
             ssh.program = pkgs.writeShellScriptBin "ssh-${name}"
-              "ssh ${config.targetUser}@${config.targetHost}";
+              ''
+                ADDR=''$(${default.program} eval -E '{ nodes, ... }:
+                    let cfg = nodes.${name}.config.deployment;
+                    in "''${cfg.targetUser}@''${cfg.targetHost}"' | tr -d '"'
+                )
+                set -x
+                ssh $ADDR
+              '';
             # Run's `colmena apply`. Enables remote build on macOS.
             deploy.program = pkgs.writeShellScriptBin "deploy-${name}"
               (if pkgs.stdenv.isLinux
@@ -37,10 +44,6 @@
         };
 
       flake = {
-        server-config = {
-          targetHost = "165.22.214.173"; # DigitalOcean droplet IP
-          targetUser = "admin";
-        };
         colmena = {
           meta = {
             nixpkgs = import inputs.nixpkgs {
@@ -50,7 +53,10 @@
             specialArgs = { inherit inputs; };
           };
           fpindia-chat = { pkgs, ... }: {
-            deployment = self.server-config;
+            deployment = {
+              targetHost = "165.22.214.173"; # DigitalOcean droplet IP
+              targetUser = "admin";
+            };
             imports = [
               ./modules/doImage.nix
               ./hosts/fpindia-chat
